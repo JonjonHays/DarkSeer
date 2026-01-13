@@ -28,37 +28,30 @@ from training.component_aware_collector import ComponentAwareCollector, SafeComm
 from training.data_collector import CatastropheDataCollector
 
 
-def load_catastrophe_repos(repos_json: Path) -> list:
+def load_catastrophes_with_repos(catastrophes_json: Path) -> list:
     """
-    Load catastrophe repo metadata from DarkSeer-v3.
+    Load catastrophes that have both code and repo info.
     
-    This has the actual repo URLs and fix commits.
+    Returns only entries that have:
+    - before_code / after_code
+    - repo_url
+    - commit_fixing
     """
-    with open(repos_json) as f:
+    with open(catastrophes_json) as f:
         data = json.load(f)
     
-    catastrophes_with_repos = []
+    catastrophes_ready = []
     
-    for repo in data.get('repos', []):
-        repo_url = repo.get('url')
-        repo_name = repo.get('name')
-        language = repo.get('language')
+    for example in data.get('examples', []):
+        repo_url = example.get('repo_url')
+        fix_commit = example.get('commit_fixing')
+        before_code = example.get('before_code')
+        after_code = example.get('after_code')
         
-        for catastrophe in repo.get('catastrophes', []):
-            fix_commit = catastrophe.get('commit_fix')
-            
-            if repo_url and fix_commit:
-                catastrophes_with_repos.append({
-                    'name': catastrophe.get('name'),
-                    'cve': catastrophe.get('cve'),
-                    'project': repo_name,
-                    'repo_url': repo_url,
-                    'fix_commit': fix_commit,
-                    'language': language,
-                    'root_cause': catastrophe.get('root_cause'),
-                })
+        if repo_url and fix_commit and before_code and after_code:
+            catastrophes_ready.append(example)
     
-    return catastrophes_with_repos
+    return catastrophes_ready
 
 
 def main():
@@ -71,31 +64,18 @@ def main():
     print()
     
     # Paths
-    catastrophe_code_path = Path(__file__).parent.parent / "data" / "training" / "catastrophes.json"
-    catastrophe_repos_path = Path("/Users/jonhays/DarkSeer-v3/data/catastrophe_repos.json")
+    catastrophe_path = Path(__file__).parent.parent / "data" / "training" / "catastrophes.json"
     output_path = Path(__file__).parent.parent / "data" / "training" / "component_aware_dataset.json"
     
-    if not catastrophe_code_path.exists():
-        print(f"❌ Catastrophe code data not found: {catastrophe_code_path}")
+    if not catastrophe_path.exists():
+        print(f"❌ Catastrophe data not found: {catastrophe_path}")
         print("   Run: python scripts/collect_training_data.py")
         return 1
     
-    if not catastrophe_repos_path.exists():
-        print(f"❌ Catastrophe repos data not found: {catastrophe_repos_path}")
-        print("   Need DarkSeer-v3 project at /Users/jonhays/DarkSeer-v3/")
-        return 1
-    
-    # Load catastrophe code (has before/after code)
-    print("📂 Loading catastrophe code...")
-    with open(catastrophe_code_path) as f:
-        code_data = json.load(f)
-    catastrophe_code = {ex['id']: ex for ex in code_data.get('examples', [])}
-    print(f"   Loaded {len(catastrophe_code)} catastrophes with code")
-    
-    # Load catastrophe repos (has repo URLs and commits)
-    print("📂 Loading catastrophe repo metadata...")
-    catastrophes_with_repos = load_catastrophe_repos(catastrophe_repos_path)
-    print(f"   Loaded {len(catastrophes_with_repos)} catastrophes with git repos")
+    # Load catastrophes (unified: code + repo info)
+    print("📂 Loading catastrophes...")
+    catastrophes = load_catastrophes_with_repos(catastrophe_path)
+    print(f"   Loaded {len(catastrophes)} catastrophes with code + repo info")
     print()
     
     # Initialize collector
@@ -128,34 +108,18 @@ def main():
     
     processed = 0
     
-    for catastrophe_repo in tqdm(catastrophes_with_repos, desc="Processing catastrophes"):
-        project = catastrophe_repo.get('project')
-        cve = catastrophe_repo.get('cve')
-        repo_url = catastrophe_repo.get('repo_url')
-        fix_commit = catastrophe_repo.get('fix_commit')
-        language = catastrophe_repo.get('language', 'unknown').lower()
-        
-        # Find matching code data by CVE or name
-        code_entry = None
-        for cat_id, cat_data in catastrophe_code.items():
-            if cat_data.get('cve') == cve or cat_data.get('name') == catastrophe_repo.get('name'):
-                code_entry = cat_data
-                break
-        
-        if not code_entry:
-            print(f"   ⚠️  Skipping {project}/{cve} (no code match)")
-            continue
-        
-        # Get code
-        before_code = code_entry.get('before_code', '')
-        after_code = code_entry.get('after_code', '')
-        
-        if not before_code or not after_code:
-            print(f"   ⚠️  Skipping {project} (no code in match)")
-            continue
+    for catastrophe in tqdm(catastrophes, desc="Processing catastrophes"):
+        cat_id = catastrophe.get('id')
+        project = catastrophe.get('project')
+        cve = catastrophe.get('cve')
+        repo_url = catastrophe.get('repo_url')
+        fix_commit = catastrophe.get('commit_fixing')
+        language = catastrophe.get('language', 'C').lower()
+        before_code = catastrophe.get('before_code')
+        after_code = catastrophe.get('after_code')
         
         # Get affected files
-        file_path = code_entry.get('file_path', '')
+        file_path = catastrophe.get('file_path', '')
         affected_files = [file_path] if file_path and file_path != 'unknown' else []
         
         print(f"\n{'='*70}")
@@ -175,7 +139,7 @@ def main():
             
             # Store results
             result_entry = {
-                'id': code_entry.get('id'),
+                'id': cat_id,
                 'project': project,
                 'cve': cve,
                 'fix_commit': fix_commit,
@@ -195,7 +159,7 @@ def main():
                         'commit_hash': commit.commit_hash,
                         'category': commit.category,
                         'project': project,
-                        'catastrophe_id': code_entry.get('id'),
+                        'catastrophe_id': cat_id,
                         'component_overlap': commit.component_overlap,
                         'files': commit.files,
                         'date': commit.date,

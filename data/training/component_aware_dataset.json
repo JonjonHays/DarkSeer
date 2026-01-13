@@ -1,10 +1,65 @@
 {
   "catastrophes": [
     {
+      "id": "dirty_pipe_2022",
+      "project": "Linux Kernel",
+      "cve": "CVE-2022-0847",
+      "fix_commit": "9d2231c5d74e13b2a0546fee6737ee4446017903",
+      "safe_commits": {
+        "SAFE_BEFORE": [],
+        "SAFE_AFTER": [],
+        "SAFE_DURING": []
+      }
+    },
+    {
+      "id": "pwnkit_2022",
+      "project": "polkit (PolicyKit)",
+      "cve": "CVE-2021-4034",
+      "fix_commit": "a2bf5c9c83b6ae46cbd5c779d3055bff81ded683",
+      "safe_commits": {
+        "SAFE_BEFORE": [],
+        "SAFE_AFTER": [],
+        "SAFE_DURING": []
+      }
+    },
+    {
       "id": "heartbleed_cve_2014_0160",
       "project": "OpenSSL",
       "cve": "CVE-2014-0160",
       "fix_commit": "96db9023b881d7cd9f379b0c154650d6c108e9a3",
+      "safe_commits": {
+        "SAFE_BEFORE": [],
+        "SAFE_AFTER": [],
+        "SAFE_DURING": []
+      }
+    },
+    {
+      "id": "equifax_apache_struts",
+      "project": "Apache Struts",
+      "cve": "CVE-2017-5638",
+      "fix_commit": "352306493971e7d5a756d61c8d9e5e5f9e6b8d26",
+      "safe_commits": {
+        "SAFE_BEFORE": [],
+        "SAFE_AFTER": [],
+        "SAFE_DURING": []
+      }
+    },
+    {
+      "id": "kubernetes_priv_esc_2018",
+      "project": "Kubernetes",
+      "cve": "CVE-2018-1002105",
+      "fix_commit": "c94b89b7bdfcc3bee31bfe76d40eb3e5c0d36773",
+      "safe_commits": {
+        "SAFE_BEFORE": [],
+        "SAFE_AFTER": [],
+        "SAFE_DURING": []
+      }
+    },
+    {
+      "id": "shellshock_2014",
+      "project": "GNU Bash",
+      "cve": "CVE-2014-6271",
+      "fix_commit": "b64a0e1d0c2e0a92ef57e6eb8b74d79e3c66b3a3",
       "safe_commits": {
         "SAFE_BEFORE": [],
         "SAFE_AFTER": [],
@@ -22,6 +77,28 @@
         "SAFE_DURING": [
           "d82b47c"
         ]
+      }
+    },
+    {
+      "id": "baron_samedit_2021",
+      "project": "sudo",
+      "cve": "CVE-2021-3156",
+      "fix_commit": "1fbec0531c83ec3a67cbeec20c6e3cb79a0c45ad",
+      "safe_commits": {
+        "SAFE_BEFORE": [],
+        "SAFE_AFTER": [],
+        "SAFE_DURING": []
+      }
+    },
+    {
+      "id": "libpng_cve_2015_8126",
+      "project": "libpng",
+      "cve": "CVE-2015-8126",
+      "fix_commit": "d9006f683fb6e4918da1b07f8c5f654bfa68df7f",
+      "safe_commits": {
+        "SAFE_BEFORE": [],
+        "SAFE_AFTER": [],
+        "SAFE_DURING": []
       }
     }
   ],
@@ -53,7 +130,7 @@
   "metadata": {
     "k_hops": 3,
     "overlap_threshold": 0.1,
-    "total_catastrophes": 2,
+    "total_catastrophes": 9,
     "total_safe_commits": 1
   }
 }

