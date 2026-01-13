@@ -74,9 +74,7 @@
       "safe_commits": {
         "SAFE_BEFORE": [],
         "SAFE_AFTER": [],
-        "SAFE_DURING": [
-          "d82b47c"
-        ]
+        "SAFE_DURING": []
       }
     },
     {
@@ -102,35 +100,11 @@
       }
     }
   ],
-  "safe_commits": [
-    {
-      "commit_hash": "d82b47c",
-      "category": "SAFE_DURING",
-      "project": "Apache Log4j",
-      "catastrophe_id": "log4shell_cve_2021_44228",
-      "component_overlap": 0.0,
-      "files": [
-        "log4j-core/pom.xml",
-        "log4j-core/src/main/java/org/apache/logging/log4j/core/net/JndiManager.java",
-        "log4j-core/src/main/java/org/apache/logging/log4j/core/util/NetUtils.java",
-        "log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiExploit.java",
-        "log4j-core/src/test/java/org/apache/logging/log4j/core/lookup/JndiRestrictedLookupTest.java",
-        "log4j-core/src/test/resources/JndiRestrictedLookup.ldif",
-        "log4j-jms/src/main/java/org/apache/logging/log4j/jms/appender/JmsAppender.java",
-        "pom.xml",
-        "src/changes/changes.xml",
-        "src/site/asciidoc/manual/appenders.adoc",
-        "src/site/asciidoc/manual/extending.adoc",
-        "src/site/asciidoc/manual/lookups.adoc"
-      ],
-      "date": "2021-12-04 21:00:58 -0700",
-      "message": "LOG4J2-3201 - Limit the protocols JNDI can use by default. Limit the servers and classes that can be accessed via LDAP."
-    }
-  ],
+  "safe_commits": [],
   "metadata": {
     "k_hops": 3,
     "overlap_threshold": 0.1,
     "total_catastrophes": 9,
-    "total_safe_commits": 1
+    "total_safe_commits": 0
   }
 }

@@ -89,8 +89,8 @@ class ComponentAwareCollector:
         fix_commit: str,
         affected_files: List[str],
         language: str,
-        catastrophe_before_code: str,
-        catastrophe_after_code: str,
+        catastrophe_before_code: str = "",  # Now optional - we'll fetch real diff
+        catastrophe_after_code: str = "",   # Now optional - we'll fetch real diff
     ) -> Dict[str, List[SafeCommit]]:
         """
         Collect safe commits for a single catastrophe.
@@ -100,33 +100,49 @@ class ComponentAwareCollector:
             fix_commit: Commit that fixes the vulnerability
             affected_files: List of files changed by the catastrophe
             language: Programming language
-            catastrophe_before_code: Vulnerable code
-            catastrophe_after_code: Fixed code
+            catastrophe_before_code: (deprecated) Use real diff instead
+            catastrophe_after_code: (deprecated) Use real diff instead
             
         Returns:
             Dict with keys: SAFE_BEFORE, SAFE_AFTER, SAFE_DURING, SAFE_RANDOM
         """
-        # Extract catastrophe's component (K=3 hop subgraph)
-        print(f"   📊 Extracting K={self.k_hops} hop component for catastrophe...")
-        catastrophe_component = extract_catastrophe_component(
-            catastrophe_before_code,
-            catastrophe_after_code,
-            language,
-            k=self.k_hops,
-        )
-        print(f"      Component size: {len(catastrophe_component)} symbols")
-        
-        # Fetch commits from git in temp directory
+        # Fetch commits from git in temp directory FIRST
+        # Then extract REAL diff for component analysis
         with tempfile.TemporaryDirectory(prefix="darkseer_safe_") as temp_dir:
             temp_path = Path(temp_dir)
             
             # Clone repo
+            print(f"   📥 Cloning repository...")
             repo_dir = self._fetch_repo(repo_url, fix_commit, temp_path)
             if not repo_dir:
+                print(f"      ❌ Clone failed")
                 return {}
             
+            # Get REAL diff from fix commit (not reconstructed snippets!)
+            print(f"   📊 Extracting REAL diff from fix commit {fix_commit[:8]}...")
+            real_before, real_after, real_files = self._get_commit_diff(repo_dir, fix_commit)
+            
+            if not real_before or not real_after:
+                print(f"      ⚠️ Could not extract diff, falling back to provided code")
+                real_before = catastrophe_before_code
+                real_after = catastrophe_after_code
+            else:
+                print(f"      ✅ Got real diff: {len(real_files)} files, {len(real_before)} bytes")
+                # Update affected_files with what we actually found
+                if real_files:
+                    affected_files = real_files
+            
+            # Extract catastrophe's component using REAL code
+            print(f"   📊 Extracting K={self.k_hops} hop component from real diff...")
+            catastrophe_component = extract_catastrophe_component(
+                real_before,
+                real_after,
+                language,
+                k=self.k_hops,
+            )
+            print(f"      Component size: {len(catastrophe_component)} symbols")
+            
             # Get commit metadata
-            fix_date = self._get_commit_date(repo_dir, fix_commit)
             parent_commit = self._get_parent_commit(repo_dir, fix_commit)
             
             # Collect safe commits in each category
@@ -159,23 +175,55 @@ class ComponentAwareCollector:
     def _fetch_repo(self, repo_url: str, commit: str, temp_dir: Path) -> Optional[Path]:
         """Fetch repo to temp directory."""
         repo_dir = temp_dir / "repo"
-        repo_dir.mkdir()
         
-        # Init and fetch
-        self._run_cmd(["git", "init"], repo_dir)
-        self._run_cmd(["git", "remote", "add", "origin", repo_url], repo_dir)
-        
-        # Fetch with history (need ~100 commits before/after)
+        # Try shallow clone first (faster)
         stdout, stderr, code = self._run_cmd(
-            ["git", "fetch", "--depth=200", "origin", commit],
-            repo_dir,
+            ["git", "clone", "--depth=100", repo_url, str(repo_dir)],
+            temp_dir,
             timeout=180,
         )
         
         if code != 0:
-            return None
+            print(f"      Shallow clone failed, trying full clone...")
+            # Fall back to full clone for old commits (longer timeout)
+            stdout, stderr, code = self._run_cmd(
+                ["git", "clone", repo_url, str(repo_dir)],
+                temp_dir,
+                timeout=900,  # 15 min for large repos
+            )
+            if code != 0:
+                print(f"      Full clone also failed: {stderr[:200]}")
+                return None
         
-        self._run_cmd(["git", "checkout", commit], repo_dir)
+        # Try to fetch the specific commit directly
+        self._run_cmd(["git", "fetch", "origin", commit], repo_dir, timeout=120)
+        
+        # Try to checkout the specific commit
+        stdout, stderr, code = self._run_cmd(
+            ["git", "checkout", commit],
+            repo_dir,
+        )
+        
+        if code != 0:
+            # Commit not in shallow history, unshallow
+            print(f"      Commit not found, fetching full history...")
+            stdout, stderr, code = self._run_cmd(
+                ["git", "fetch", "--unshallow"],
+                repo_dir,
+                timeout=900,  # 15 min for large repos
+            )
+            if code != 0:
+                print(f"      Unshallow failed: {stderr[:200]}")
+                return None
+            
+            stdout, stderr, code = self._run_cmd(
+                ["git", "checkout", commit],
+                repo_dir,
+            )
+            if code != 0:
+                print(f"      Checkout failed: {stderr[:200]}")
+                return None
+        
         return repo_dir
     
     def _collect_safe_before(
@@ -375,27 +423,37 @@ class ComponentAwareCollector:
         return [line.strip() for line in stdout.strip().split('\n') if line]
     
     def _get_commit_diff(self, repo_dir: Path, commit: str) -> Tuple[str, str, List[str]]:
-        """Get before/after code for a commit."""
+        """Get before/after code for a commit.
+        
+        Returns the FIRST source file's content (not concatenated).
+        This ensures proper parsing by Tree-sitter.
+        """
         # Get changed files
         files = self._get_files_changed(repo_dir, commit)
         
         if not files:
             return "", "", []
         
-        # Get file content before (parent)
+        # Filter to source files we can parse
+        SOURCE_EXTS = {'.c', '.cpp', '.h', '.java', '.py', '.js', '.ts', '.go', '.rs', '.rb'}
+        source_files = [f for f in files if any(f.endswith(ext) for ext in SOURCE_EXTS)]
+        
+        if not source_files:
+            source_files = files  # Fall back to all files
+        
+        # Get parent commit
         parent = self._get_parent_commit(repo_dir, commit)
-        before_code = ""
-        for file in files[:5]:  # Limit to first 5 files
-            stdout, _, code = self._run_cmd(["git", "show", f"{parent}:{file}"], repo_dir)
-            if code == 0:
-                before_code += stdout + "\n\n"
         
-        # Get file content after (commit)
-        after_code = ""
-        for file in files[:5]:
-            stdout, _, code = self._run_cmd(["git", "show", f"{commit}:{file}"], repo_dir)
-            if code == 0:
-                after_code += stdout + "\n\n"
+        # Get content for FIRST source file only (proper parsing)
+        target_file = source_files[0]
         
-        return before_code.strip(), after_code.strip(), files
+        # Before
+        stdout, _, code = self._run_cmd(["git", "show", f"{parent}:{target_file}"], repo_dir)
+        before_code = stdout if code == 0 else ""
+        
+        # After
+        stdout, _, code = self._run_cmd(["git", "show", f"{commit}:{target_file}"], repo_dir)
+        after_code = stdout if code == 0 else ""
+        
+        return before_code, after_code, source_files
 
