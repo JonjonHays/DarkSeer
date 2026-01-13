@@ -28,12 +28,37 @@ from training.component_aware_collector import ComponentAwareCollector, SafeComm
 from training.data_collector import CatastropheDataCollector
 
 
-def load_catastrophe_metadata(catastrophe_json: Path) -> list:
-    """Load catastrophe metadata including repo URLs and commits."""
-    with open(catastrophe_json) as f:
+def load_catastrophe_repos(repos_json: Path) -> list:
+    """
+    Load catastrophe repo metadata from DarkSeer-v3.
+    
+    This has the actual repo URLs and fix commits.
+    """
+    with open(repos_json) as f:
         data = json.load(f)
     
-    return data.get('examples', [])
+    catastrophes_with_repos = []
+    
+    for repo in data.get('repos', []):
+        repo_url = repo.get('url')
+        repo_name = repo.get('name')
+        language = repo.get('language')
+        
+        for catastrophe in repo.get('catastrophes', []):
+            fix_commit = catastrophe.get('commit_fix')
+            
+            if repo_url and fix_commit:
+                catastrophes_with_repos.append({
+                    'name': catastrophe.get('name'),
+                    'cve': catastrophe.get('cve'),
+                    'project': repo_name,
+                    'repo_url': repo_url,
+                    'fix_commit': fix_commit,
+                    'language': language,
+                    'root_cause': catastrophe.get('root_cause'),
+                })
+    
+    return catastrophes_with_repos
 
 
 def main():
@@ -46,34 +71,32 @@ def main():
     print()
     
     # Paths
-    catastrophe_path = Path(__file__).parent.parent / "data" / "training" / "catastrophes.json"
+    catastrophe_code_path = Path(__file__).parent.parent / "data" / "training" / "catastrophes.json"
+    catastrophe_repos_path = Path("/Users/jonhays/DarkSeer-v3/data/catastrophe_repos.json")
     output_path = Path(__file__).parent.parent / "data" / "training" / "component_aware_dataset.json"
     
-    if not catastrophe_path.exists():
-        print(f"❌ Catastrophe data not found: {catastrophe_path}")
+    if not catastrophe_code_path.exists():
+        print(f"❌ Catastrophe code data not found: {catastrophe_code_path}")
         print("   Run: python scripts/collect_training_data.py")
         return 1
     
-    # Load catastrophes
-    print("📂 Loading catastrophe metadata...")
-    catastrophes = load_catastrophe_metadata(catastrophe_path)
-    print(f"   Loaded {len(catastrophes)} catastrophes")
+    if not catastrophe_repos_path.exists():
+        print(f"❌ Catastrophe repos data not found: {catastrophe_repos_path}")
+        print("   Need DarkSeer-v3 project at /Users/jonhays/DarkSeer-v3/")
+        return 1
+    
+    # Load catastrophe code (has before/after code)
+    print("📂 Loading catastrophe code...")
+    with open(catastrophe_code_path) as f:
+        code_data = json.load(f)
+    catastrophe_code = {ex['id']: ex for ex in code_data.get('examples', [])}
+    print(f"   Loaded {len(catastrophe_code)} catastrophes with code")
+    
+    # Load catastrophe repos (has repo URLs and commits)
+    print("📂 Loading catastrophe repo metadata...")
+    catastrophes_with_repos = load_catastrophe_repos(catastrophe_repos_path)
+    print(f"   Loaded {len(catastrophes_with_repos)} catastrophes with git repos")
     print()
-    
-    # Filter to those with git info (repo URLs and commits)
-    # For now, we'll need to add repo URLs to the catastrophe data
-    # Let's start with a subset that we know have git repos
-    
-    known_repos = {
-        'OpenSSL': 'https://github.com/openssl/openssl.git',
-        'Apache Log4j': 'https://github.com/apache/logging-log4j2.git',
-        'curl': 'https://github.com/curl/curl.git',
-        'sudo': 'https://github.com/sudo-project/sudo.git',
-        'Redis': 'https://github.com/redis/redis.git',
-        'nginx': 'https://github.com/nginx/nginx.git',
-        'Git': 'https://github.com/git/git.git',
-        'Linux Kernel': 'https://github.com/torvalds/linux.git',
-    }
     
     # Initialize collector
     collector = ComponentAwareCollector(
@@ -105,37 +128,38 @@ def main():
     
     processed = 0
     
-    for catastrophe in tqdm(catastrophes, desc="Processing catastrophes"):
-        project = catastrophe.get('project', '')
-        repo_url = known_repos.get(project)
+    for catastrophe_repo in tqdm(catastrophes_with_repos, desc="Processing catastrophes"):
+        project = catastrophe_repo.get('project')
+        cve = catastrophe_repo.get('cve')
+        repo_url = catastrophe_repo.get('repo_url')
+        fix_commit = catastrophe_repo.get('fix_commit')
+        language = catastrophe_repo.get('language', 'unknown').lower()
         
-        if not repo_url:
-            print(f"   ⚠️  Skipping {project} (no repo URL)")
+        # Find matching code data by CVE or name
+        code_entry = None
+        for cat_id, cat_data in catastrophe_code.items():
+            if cat_data.get('cve') == cve or cat_data.get('name') == catastrophe_repo.get('name'):
+                code_entry = cat_data
+                break
+        
+        if not code_entry:
+            print(f"   ⚠️  Skipping {project}/{cve} (no code match)")
             continue
-        
-        # Get commit info
-        fix_commit = catastrophe.get('commit_fixing')
-        if not fix_commit:
-            print(f"   ⚠️  Skipping {project} (no fix commit)")
-            continue
-        
-        # Get affected files from the catastrophe data
-        file_path = catastrophe.get('file_path', '')
-        affected_files = [file_path] if file_path else []
-        
-        # Get language
-        language = catastrophe.get('language', 'unknown').lower()
         
         # Get code
-        before_code = catastrophe.get('before_code', '')
-        after_code = catastrophe.get('after_code', '')
+        before_code = code_entry.get('before_code', '')
+        after_code = code_entry.get('after_code', '')
         
         if not before_code or not after_code:
-            print(f"   ⚠️  Skipping {project} (no code)")
+            print(f"   ⚠️  Skipping {project} (no code in match)")
             continue
         
+        # Get affected files
+        file_path = code_entry.get('file_path', '')
+        affected_files = [file_path] if file_path and file_path != 'unknown' else []
+        
         print(f"\n{'='*70}")
-        print(f"   {project} ({catastrophe.get('cve', 'N/A')})")
+        print(f"   {project} ({cve or 'N/A'})")
         print(f"{'='*70}")
         
         try:
@@ -150,10 +174,10 @@ def main():
             )
             
             # Store results
-            catastrophe_entry = {
-                'id': catastrophe.get('id'),
+            result_entry = {
+                'id': code_entry.get('id'),
                 'project': project,
-                'cve': catastrophe.get('cve'),
+                'cve': cve,
                 'fix_commit': fix_commit,
                 'safe_commits': {
                     'SAFE_BEFORE': [c.commit_hash for c in safe_commits.get('SAFE_BEFORE', [])],
@@ -162,7 +186,7 @@ def main():
                 }
             }
             
-            all_data['catastrophes'].append(catastrophe_entry)
+            all_data['catastrophes'].append(result_entry)
             
             # Add safe commits to global list
             for category, commits in safe_commits.items():
@@ -171,7 +195,7 @@ def main():
                         'commit_hash': commit.commit_hash,
                         'category': commit.category,
                         'project': project,
-                        'catastrophe_id': catastrophe.get('id'),
+                        'catastrophe_id': code_entry.get('id'),
                         'component_overlap': commit.component_overlap,
                         'files': commit.files,
                         'date': commit.date,
