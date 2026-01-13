@@ -1,0 +1,4 @@
+[submodule "archidx"]
+	path = archidx
+	url = https://github.com/YOUR_ORG/ArchIdx.git
+

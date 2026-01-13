@@ -1,0 +1,28 @@
+# DarkSeer Dependencies
+
+# ArchIdx is included as a submodule, install its deps:
+# pip install -r archidx/requirements.txt
+
+# Core
+torch>=2.0.0
+numpy>=1.24.0
+
+# Tree-sitter for multi-language parsing
+tree-sitter>=0.21.0,<0.22.0
+tree-sitter-languages>=1.10.0
+
+# Git operations
+gitpython>=3.1.0
+
+# Data processing
+pandas>=2.0.0
+tqdm>=4.65.0
+
+# API/Web (for integrations)
+requests>=2.31.0
+flask>=3.0.0  # For webhook server
+
+# Optional: Transformers for advanced encoding
+# transformers>=4.30.0
+# tokenizers>=0.13.0
+
