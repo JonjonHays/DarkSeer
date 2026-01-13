@@ -291,21 +291,22 @@ def load_safe_commits(json_path: Path, max_count: int = 100) -> List[TrainingExa
         max_count: Maximum number to load (safe commits are numerous)
     """
     with open(json_path) as f:
-        data = json.load(f)
+        commits = json.load(f)  # It's a list directly
     
     examples = []
-    commits = data.get('commits', [])[:max_count]
     
-    for commit in commits:
+    for commit in commits[:max_count]:
+        # Safe commits don't have full code, just metadata
+        # We'll use empty code for now (could fetch from git later)
         example = TrainingExample(
-            before_code=commit.get('diff', ''),  # Simplified
-            after_code=commit.get('diff', ''),
+            before_code='',  # Placeholder - would need to fetch from git
+            after_code='',
             language=commit.get('language', 'unknown'),
             is_catastrophic=False,
             category='safe',
             root_cause='none',
             severity_score=0.0,
-            example_id=commit.get('sha', ''),
+            example_id=commit.get('commit_hash', ''),
             project=commit.get('repo', 'unknown'),
         )
         examples.append(example)

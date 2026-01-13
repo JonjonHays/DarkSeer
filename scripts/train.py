@@ -169,9 +169,9 @@ def main():
     # Load safe commits if available
     safe_examples = []
     if safe_commits_path.exists():
-        print(f"   Loading safe commits from DarkSeer-v3...")
-        safe_examples = load_safe_commits(safe_commits_path, max_count=100)
-        print(f"   Loaded {len(safe_examples)} safe commits")
+        print(f"   ⚠️  Safe commits don't have code yet (would need git fetch)")
+        print(f"   Training on catastrophes only for now")
+        # safe_examples = load_safe_commits(safe_commits_path, max_count=100)
     else:
         print(f"   ⚠️  Safe commits not found (training on catastrophes only)")
     
