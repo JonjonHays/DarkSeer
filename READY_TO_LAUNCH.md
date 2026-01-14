@@ -60,7 +60,7 @@ python scripts/test_real_catastrophes.py
 ### Step 1: Component-Aware Data Collection (~5-10 min)
 ```bash
 cd /Users/jonhays/DarkSeer
-python scripts/collect_component_aware_data.py
+python `scripts/collect_component_aware_data.py`
 ```
 
 **What happens**:

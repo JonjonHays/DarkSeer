@@ -41,10 +41,38 @@ class SurgicalFetcher:
     
     Uses blobless clones and targeted fetches to minimize
     bandwidth while getting complete commit windows.
+    
+    Requires Git 2.19+ for partial clone support.
     """
+    
+    MIN_GIT_VERSION = (2, 19)
     
     def __init__(self, config: FetchConfig = None):
         self.config = config or FetchConfig()
+        self._check_git_version()
+    
+    def _check_git_version(self):
+        """Verify git version supports partial clone."""
+        try:
+            result = subprocess.run(
+                ["git", "--version"],
+                capture_output=True, text=True
+            )
+            # "git version 2.15.1" -> (2, 15)
+            version_str = result.stdout.strip().replace("git version ", "")
+            parts = version_str.split(".")[:2]
+            version = tuple(int(p) for p in parts if p.isdigit())
+            
+            if version < self.MIN_GIT_VERSION:
+                raise RuntimeError(
+                    f"\n❌ Git {version_str} is too old!\n"
+                    f"   DarkSeer requires Git {'.'.join(map(str, self.MIN_GIT_VERSION))}+ "
+                    f"for partial clone support.\n"
+                    f"   Please upgrade: https://git-scm.com/downloads\n"
+                    f"   Or via Homebrew: brew upgrade git"
+                )
+        except FileNotFoundError:
+            raise RuntimeError("Git not found. Please install Git 2.19+.")
     
     def fetch_catastrophe_window(
         self,
@@ -113,27 +141,25 @@ class SurgicalFetcher:
         descendants = self._get_descendants(repo_url, target_sha, M)
         print(f"      Found {len(descendants)} descendants")
         
-        # 2. Fetch metadata for target + descendants (blobless)
-        fetch_shas = [target_sha] + descendants
-        fetch_args = ["fetch", "--filter=blob:none", "--depth=1", "origin"]
-        fetch_args.extend(fetch_shas)
+        # 2. Determine the tip (furthest descendant or target if no descendants)
+        tip_sha = descendants[-1] if descendants else target_sha
         
-        stdout, stderr, code = self._run_git(fetch_args, repo_dir)
+        # 3. Fetch from TIP with enough depth to include target + ancestors
+        # depth = descendants + 1 (target) + ancestors
+        total_depth = len(descendants) + 1 + N
+        print(f"      Fetching from tip {tip_sha[:8]} with depth={total_depth}...")
+        
+        stdout, stderr, code = self._run_git(
+            ["fetch", "--filter=blob:none", f"--depth={total_depth}", "origin", tip_sha],
+            repo_dir
+        )
         if code != 0:
             print(f"      ❌ Fetch failed: {stderr[:100]}")
             return None
         
-        # 3. Deepen backward to get ancestors
-        print(f"      Deepening {N} ancestors...")
-        self._run_git(
-            ["fetch", "--filter=blob:none", f"--deepen={N}", "origin", target_sha],
-            repo_dir
-        )
-        
-        # 4. Get ordered commit list
-        tip_sha = descendants[-1] if descendants else target_sha
+        # 4. Get ordered commit list (now they're all connected!)
         stdout, _, _ = self._run_git(
-            ["rev-list", tip_sha, f"--max-count={N + M + 1}", "--reverse"],
+            ["rev-list", tip_sha, f"--max-count={total_depth}", "--reverse"],
             repo_dir
         )
         all_commits = stdout.strip().split('\n') if stdout.strip() else []
