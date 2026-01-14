@@ -1,0 +1,98 @@
+{
+  "description": "Verified catastrophe records with confirmed commit hashes",
+  "last_verified": "2026-01-14",
+  
+  "catastrophes": [
+    {
+      "id": "heartbleed",
+      "name": "Heartbleed",
+      "cve": "CVE-2014-0160",
+      
+      "repo_url": "https://github.com/openssl/openssl",
+      "breaking_commits": [],
+      "fixing_commits": ["96db9023b881d7cd9f379b0c154650d6c108e9a3"],
+      
+      "catastrophe_type": "sudden",
+      "is_systemic": false,
+      "latency_years": 2.0,
+      
+      "language": "c",
+      "affected_files": ["ssl/d1_both.c", "ssl/t1_lib.c"],
+      
+      "severity_score": 10,
+      "deaths": 0,
+      "financial_loss_usd": 500000000,
+      
+      "year": 2014,
+      "description": "Missing bounds check in TLS heartbeat extension allowed reading 64k of server memory. Affected 66% of HTTPS servers.",
+      "verified": true,
+      
+      "verification_notes": "Fix commit verified via GitHub API on 2026-01-14. Commit message explicitly mentions CVE-2014-0160."
+    },
+    {
+      "id": "pwnkit",
+      "name": "PwnKit",
+      "cve": "CVE-2021-4034",
+      
+      "repo_url": "https://gitlab.freedesktop.org/polkit/polkit",
+      "breaking_commits": [],
+      "fixing_commits": ["a2bf5c9c83b6ae46cbd5c779d3055bff81ded683"],
+      
+      "catastrophe_type": "systemic",
+      "is_systemic": true,
+      "latency_years": 12.0,
+      
+      "language": "c",
+      "affected_files": ["src/programs/pkexec.c"],
+      
+      "severity_score": 9,
+      "deaths": 0,
+      "financial_loss_usd": 100000000,
+      
+      "year": 2022,
+      "description": "Local privilege escalation via pkexec. Vulnerability existed for 12+ years - classic systemic/architectural flaw where code assumed argc >= 1.",
+      "verified": true,
+      
+      "verification_notes": "Fix commit verified via GitLab API on 2026-01-14. Commit title explicitly mentions CVE-2021-4034."
+    },
+    {
+      "id": "log4shell",
+      "name": "Log4Shell",
+      "cve": "CVE-2021-44228",
+      
+      "repo_url": "https://github.com/apache/logging-log4j2",
+      "breaking_commits": [],
+      "fixing_commits": ["d82b47c6fae9c15fcb183170394d5f1a01ac02d3"],
+      
+      "catastrophe_type": "sudden",
+      "is_systemic": false,
+      "latency_years": 0.5,
+      
+      "language": "java",
+      "affected_files": ["log4j-core/src/main/java/org/apache/logging/log4j/core/lookup/JndiLookup.java"],
+      
+      "severity_score": 10,
+      "deaths": 0,
+      "financial_loss_usd": 10000000000,
+      
+      "year": 2021,
+      "description": "JNDI injection via log messages. Affected virtually every Java application. Attacker could execute arbitrary code by getting app to log a malicious string.",
+      "verified": true,
+      
+      "verification_notes": "Fix commit verified via GitHub API on 2026-01-14. Commit message: LOG4J2-3201 - Limit the protocols JNDI can use."
+    }
+  ],
+  
+  "pending_verification": [
+    {
+      "id": "dirty_pipe",
+      "name": "Dirty Pipe",
+      "cve": "CVE-2022-0847",
+      "repo_url": "https://github.com/torvalds/linux",
+      "claimed_fix_commit": null,
+      "needs_verification": true,
+      "notes": "Linux kernel - need to find specific commit"
+    }
+  ]
+}
+
