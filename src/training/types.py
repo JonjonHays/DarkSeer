@@ -9,9 +9,10 @@ from enum import Enum
 
 class CatastropheType(Enum):
     """Type of catastrophe for training purposes."""
-    SUDDEN = "sudden"       # Single commit introduced the bug (e.g., Heartbleed)
-    SYSTEMIC = "systemic"   # Architectural flaw since inception (e.g., libpng)
-    GRADUAL = "gradual"     # Technical debt accumulation over time
+    SUDDEN = "sudden"           # Single commit introduced the bug (e.g., Heartbleed)
+    SYSTEMIC = "systemic"       # Architectural flaw since inception (e.g., libpng)
+    GRADUAL = "gradual"         # Technical debt accumulation over time
+    SUPPLY_CHAIN = "supply_chain"  # Malicious code injection (e.g., xz backdoor)
 
 
 @dataclass

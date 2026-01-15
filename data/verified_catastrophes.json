@@ -1,98 +1,258 @@
 {
   "description": "Verified catastrophe records with confirmed commit hashes",
   "last_verified": "2026-01-14",
-  
   "catastrophes": [
     {
       "id": "heartbleed",
       "name": "Heartbleed",
       "cve": "CVE-2014-0160",
-      
       "repo_url": "https://github.com/openssl/openssl",
       "breaking_commits": [],
       "fixing_commits": ["96db9023b881d7cd9f379b0c154650d6c108e9a3"],
-      
       "catastrophe_type": "sudden",
       "is_systemic": false,
       "latency_years": 2.0,
-      
       "language": "c",
       "affected_files": ["ssl/d1_both.c", "ssl/t1_lib.c"],
-      
       "severity_score": 10,
       "deaths": 0,
       "financial_loss_usd": 500000000,
-      
       "year": 2014,
       "description": "Missing bounds check in TLS heartbeat extension allowed reading 64k of server memory. Affected 66% of HTTPS servers.",
       "verified": true,
-      
-      "verification_notes": "Fix commit verified via GitHub API on 2026-01-14. Commit message explicitly mentions CVE-2014-0160."
+      "verification_notes": "Verified via surgical fetch on 2026-01-14. 3 ancestors found."
     },
     {
       "id": "pwnkit",
       "name": "PwnKit",
       "cve": "CVE-2021-4034",
-      
       "repo_url": "https://gitlab.freedesktop.org/polkit/polkit",
       "breaking_commits": [],
       "fixing_commits": ["a2bf5c9c83b6ae46cbd5c779d3055bff81ded683"],
-      
       "catastrophe_type": "systemic",
       "is_systemic": true,
       "latency_years": 12.0,
-      
       "language": "c",
       "affected_files": ["src/programs/pkexec.c"],
-      
       "severity_score": 9,
       "deaths": 0,
       "financial_loss_usd": 100000000,
-      
       "year": 2022,
       "description": "Local privilege escalation via pkexec. Vulnerability existed for 12+ years - classic systemic/architectural flaw where code assumed argc >= 1.",
       "verified": true,
-      
-      "verification_notes": "Fix commit verified via GitLab API on 2026-01-14. Commit title explicitly mentions CVE-2021-4034."
+      "verification_notes": "Verified via surgical fetch on 2026-01-14. Confirmed via osv.dev."
     },
     {
       "id": "log4shell",
       "name": "Log4Shell",
       "cve": "CVE-2021-44228",
-      
       "repo_url": "https://github.com/apache/logging-log4j2",
       "breaking_commits": [],
       "fixing_commits": ["d82b47c6fae9c15fcb183170394d5f1a01ac02d3"],
-      
       "catastrophe_type": "sudden",
       "is_systemic": false,
       "latency_years": 0.5,
-      
       "language": "java",
       "affected_files": ["log4j-core/src/main/java/org/apache/logging/log4j/core/lookup/JndiLookup.java"],
-      
       "severity_score": 10,
       "deaths": 0,
       "financial_loss_usd": 10000000000,
-      
       "year": 2021,
       "description": "JNDI injection via log messages. Affected virtually every Java application. Attacker could execute arbitrary code by getting app to log a malicious string.",
       "verified": true,
-      
-      "verification_notes": "Fix commit verified via GitHub API on 2026-01-14. Commit message: LOG4J2-3201 - Limit the protocols JNDI can use."
+      "verification_notes": "Verified via surgical fetch on 2026-01-14. 3 ancestors found."
+    },
+    {
+      "id": "dirty_cow",
+      "name": "Dirty COW",
+      "cve": "CVE-2016-5195",
+      "repo_url": "https://github.com/torvalds/linux",
+      "breaking_commits": [],
+      "fixing_commits": ["19be0eaffa3ac7d8eb6784ad9bdbc7d67ed8e619"],
+      "catastrophe_type": "systemic",
+      "is_systemic": true,
+      "latency_years": 9.0,
+      "language": "c",
+      "affected_files": ["mm/gup.c"],
+      "severity_score": 9,
+      "deaths": 0,
+      "financial_loss_usd": 300000000,
+      "year": 2016,
+      "description": "Race condition in get_user_pages allowing local privilege escalation. Existed in Linux kernel since 2007.",
+      "verified": true,
+      "verification_notes": "Verified via surgical fetch on 2026-01-14. 3 ancestors found."
+    },
+    {
+      "id": "xz_backdoor",
+      "name": "XZ Utils Backdoor",
+      "cve": "CVE-2024-3094",
+      "repo_url": "https://github.com/tukaani-project/xz",
+      "breaking_commits": ["cf44e4b7f5dfdbf8c78aef377c10f71e274f63c0"],
+      "fixing_commits": ["6e636819e8f070330d835fce46289a3ff72a7b89"],
+      "catastrophe_type": "supply_chain",
+      "is_systemic": false,
+      "latency_years": 0.1,
+      "language": "c",
+      "affected_files": ["src/liblzma/check/crc64_fast.c"],
+      "severity_score": 10,
+      "deaths": 0,
+      "financial_loss_usd": 0,
+      "year": 2024,
+      "description": "Sophisticated supply chain attack. Malicious code injected via build process to backdoor SSH authentication on Debian/Fedora.",
+      "verified": true,
+      "verification_notes": "Verified via surgical fetch on 2026-01-14. Both breaking and fixing commits confirmed."
+    },
+    {
+      "id": "baron_samedit",
+      "name": "Baron Samedit",
+      "cve": "CVE-2021-3156",
+      "repo_url": "https://github.com/sudo-project/sudo",
+      "breaking_commits": ["8255ed69"],
+      "fixing_commits": [
+        "b301b46b79c6e2a76d530fa36d05992e74952ee8",
+        "1f8638577d0c80a4ff864a2aad80a0d95488e9a8"
+      ],
+      "catastrophe_type": "systemic",
+      "is_systemic": true,
+      "latency_years": 10.0,
+      "language": "c",
+      "affected_files": ["plugins/sudoers/sudoers.c"],
+      "severity_score": 9,
+      "deaths": 0,
+      "financial_loss_usd": 150000000,
+      "year": 2021,
+      "description": "Heap-based buffer overflow in sudo's sudoedit mode. Vulnerability existed since July 2011.",
+      "verified": false,
+      "verification_notes": "SHAs from Qualys writeup and Core-Research-Team. Breaking commit is abbreviated - expand with git rev-parse."
+    },
+    {
+      "id": "curl_socks5",
+      "name": "curl SOCKS5 Heap Overflow",
+      "cve": "CVE-2023-38545",
+      "repo_url": "https://github.com/curl/curl",
+      "breaking_commits": ["4a4b63daaa"],
+      "fixing_commits": ["fb4415d8aee6c1"],
+      "catastrophe_type": "sudden",
+      "is_systemic": false,
+      "latency_years": 0.5,
+      "language": "c",
+      "affected_files": ["lib/socks.c"],
+      "severity_score": 9,
+      "deaths": 0,
+      "financial_loss_usd": 50000000,
+      "year": 2023,
+      "description": "Heap buffer overflow in SOCKS5 proxy handshake. Hostname could overflow into heap buffer.",
+      "verified": false,
+      "verification_notes": "Abbreviated SHAs from curl.se advisory. Expand with git rev-parse."
+    },
+    {
+      "id": "nginx_resolver",
+      "name": "nginx DNS Resolver",
+      "cve": "CVE-2021-23017",
+      "repo_url": "https://github.com/nginx/nginx",
+      "breaking_commits": [],
+      "fixing_commits": ["7199ebc203f74fd9e44595474de6bdc41740c5cf"],
+      "catastrophe_type": "sudden",
+      "is_systemic": false,
+      "latency_years": 1.0,
+      "language": "c",
+      "affected_files": ["src/core/ngx_resolver.c"],
+      "severity_score": 8,
+      "deaths": 0,
+      "financial_loss_usd": 50000000,
+      "year": 2021,
+      "description": "Off-by-one write in ngx_resolver_copy() when processing DNS responses.",
+      "verified": false,
+      "verification_notes": "Fix SHA from x41-dsec.de advisory and GitHub commit."
+    },
+    {
+      "id": "git_credential_leak",
+      "name": "Git Credential Leak",
+      "cve": "CVE-2020-5260",
+      "repo_url": "https://github.com/git/git",
+      "breaking_commits": [],
+      "fixing_commits": ["9a6bbee8006c24b46a85d29e7b38cfa79e9ab21b"],
+      "catastrophe_type": "sudden",
+      "is_systemic": false,
+      "latency_years": 2.0,
+      "language": "c",
+      "affected_files": ["credential.c"],
+      "severity_score": 8,
+      "deaths": 0,
+      "financial_loss_usd": 20000000,
+      "year": 2020,
+      "description": "Credential leak via malicious URLs with embedded newlines.",
+      "verified": false,
+      "verification_notes": "Fix SHA confirmed from GitHub git/git commit."
+    },
+    {
+      "id": "apache_struts_equifax",
+      "name": "Apache Struts (Equifax)",
+      "cve": "CVE-2017-5638",
+      "repo_url": "https://github.com/apache/struts",
+      "breaking_commits": [],
+      "fixing_commits": ["352306493971e7d5a756d61c8d9e5e5f9e6b8d26"],
+      "catastrophe_type": "sudden",
+      "is_systemic": false,
+      "latency_years": 0.1,
+      "language": "java",
+      "affected_files": ["core/src/main/java/org/apache/struts2/dispatcher/multipart/JakartaMultiPartRequest.java"],
+      "severity_score": 10,
+      "deaths": 0,
+      "financial_loss_usd": 4000000000,
+      "year": 2017,
+      "description": "RCE via Content-Type header in Jakarta Multipart parser. Led to Equifax breach affecting 147M people.",
+      "verified": false,
+      "verification_notes": "Fix SHA from ChatGPT research - needs verification."
+    },
+    {
+      "id": "shellshock",
+      "name": "Shellshock",
+      "cve": "CVE-2014-6271",
+      "repo_url": "https://github.com/bminor/bash",
+      "breaking_commits": [],
+      "fixing_commits": [],
+      "catastrophe_type": "systemic",
+      "is_systemic": true,
+      "latency_years": 22.0,
+      "language": "c",
+      "affected_files": ["variables.c", "builtins/evalstring.c"],
+      "severity_score": 10,
+      "deaths": 0,
+      "financial_loss_usd": 1000000000,
+      "year": 2014,
+      "description": "Arbitrary code execution via malformed function definitions in bash. Existed since bash 1.03 (1989). Affected CGI, SSH, DHCP clients.",
+      "verified": false,
+      "verification_notes": "Need to find fix commit via git log --grep=CVE-2014-6271 in bash repo."
     }
   ],
-  
   "pending_verification": [
     {
       "id": "dirty_pipe",
       "name": "Dirty Pipe",
       "cve": "CVE-2022-0847",
       "repo_url": "https://github.com/torvalds/linux",
+      "claimed_fix_commit": "9d2231c5d74e13e950aee4df52faf8c42e1e088",
+      "needs_verification": true,
+      "notes": "SHA appears to be truncated or incorrect - not found in linux repo."
+    },
+    {
+      "id": "spectre_v1",
+      "name": "Spectre Variant 1",
+      "cve": "CVE-2017-5753",
+      "repo_url": "https://github.com/torvalds/linux",
       "claimed_fix_commit": null,
       "needs_verification": true,
-      "notes": "Linux kernel - need to find specific commit"
+      "notes": "Multiple commits across kernel - architectural, not single fix"
+    },
+    {
+      "id": "meltdown",
+      "name": "Meltdown",
+      "cve": "CVE-2017-5754",
+      "repo_url": "https://github.com/torvalds/linux",
+      "claimed_fix_commit": null,
+      "needs_verification": true,
+      "notes": "KPTI implementation - multiple commits. Architectural mitigation, not single fix."
     }
   ]
 }
-

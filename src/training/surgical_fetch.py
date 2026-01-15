@@ -33,6 +33,7 @@ class FetchConfig:
     descendants_count: int = 10  # N commits after target
     use_sparse_checkout: bool = False  # Future optimization
     github_token: Optional[str] = None  # For API calls
+    skip_verification_check: bool = False  # For verification scripts
 
 
 class SurgicalFetcher:
@@ -89,7 +90,7 @@ class SurgicalFetcher:
         Returns:
             Tuple of (repo_dir, list of CommitWindows)
         """
-        if not record.verified:
+        if not record.verified and not self.config.skip_verification_check:
             raise ValueError(f"CatastropheRecord {record.id} not verified!")
         
         # Create work directory
@@ -130,50 +131,77 @@ class SurgicalFetcher:
         target_sha: str,
         window_type: str,
     ) -> Optional[CommitWindow]:
-        """Fetch a window of commits around a target."""
+        """
+        Fetch a window of commits around a target.
+        
+        Strategy (simple - option A):
+        - Fetch target commit with enough depth to get N ancestors
+        - Use rev-list to enumerate ancestors (works regardless of branch topology)
+        - Optionally get descendants via API (GitHub compare)
+        """
         
         N = self.config.ancestors_count
         M = self.config.descendants_count
         
         print(f"   Fetching {window_type} window for {target_sha[:8]}...")
         
-        # 1. Get child commits (descendants) via API
-        descendants = self._get_descendants(repo_url, target_sha, M)
-        print(f"      Found {len(descendants)} descendants")
-        
-        # 2. Determine the tip (furthest descendant or target if no descendants)
-        tip_sha = descendants[-1] if descendants else target_sha
-        
-        # 3. Fetch from TIP with enough depth to include target + ancestors
-        # depth = descendants + 1 (target) + ancestors
-        total_depth = len(descendants) + 1 + N
-        print(f"      Fetching from tip {tip_sha[:8]} with depth={total_depth}...")
-        
+        # 1. Fetch target commit with N+1 depth (target + N ancestors)
+        # Using --filter=blob:none for blobless clone (fetch blobs on demand)
+        print(f"      Fetching target + {N} ancestors...")
         stdout, stderr, code = self._run_git(
-            ["fetch", "--filter=blob:none", f"--depth={total_depth}", "origin", tip_sha],
+            ["fetch", "--filter=blob:none", f"--depth={N + 1}", "origin", target_sha],
             repo_dir
         )
         if code != 0:
             print(f"      ❌ Fetch failed: {stderr[:100]}")
             return None
         
-        # 4. Get ordered commit list (now they're all connected!)
-        stdout, _, _ = self._run_git(
-            ["rev-list", tip_sha, f"--max-count={total_depth}", "--reverse"],
+        # 2. Get ancestors using rev-list (works on any branch)
+        # --reverse gives oldest-first order
+        stdout, _, code = self._run_git(
+            ["rev-list", target_sha, f"--max-count={N + 1}", "--reverse"],
             repo_dir
         )
-        all_commits = stdout.strip().split('\n') if stdout.strip() else []
+        if code != 0:
+            print(f"      ❌ rev-list failed")
+            return None
+            
+        all_commits = [c for c in stdout.strip().split('\n') if c]
         
-        # 5. Split into ancestors/descendants relative to target
-        try:
+        # Split: ancestors are before target, target is last
+        if target_sha in all_commits:
             target_idx = all_commits.index(target_sha)
             ancestors = all_commits[:target_idx]
-            descendants = all_commits[target_idx + 1:]
-        except ValueError:
-            ancestors = []
-            descendants = []
+        else:
+            # Target might be abbreviated, find by prefix
+            for i, c in enumerate(all_commits):
+                if c.startswith(target_sha) or target_sha.startswith(c):
+                    ancestors = all_commits[:i]
+                    break
+            else:
+                ancestors = all_commits[:-1] if all_commits else []
         
-        print(f"      Window: {len(ancestors)} ancestors, {len(descendants)} descendants")
+        # 3. Get descendants via API (optional - can fail gracefully)
+        descendants = []
+        if M > 0:
+            api_descendants = self._get_descendants(repo_url, target_sha, M)
+            if api_descendants:
+                # Fetch tip to get descendants
+                tip_sha = api_descendants[-1]
+                descendant_depth = len(api_descendants) + 10
+                print(f"      Fetching {len(api_descendants)} descendants (tip={tip_sha[:8]})...")
+                self._run_git(
+                    ["fetch", "--filter=blob:none", f"--depth={descendant_depth}", "origin", tip_sha],
+                    repo_dir
+                )
+                # Verify we can traverse from target to tip
+                stdout, _, _ = self._run_git(
+                    ["rev-list", f"{target_sha}..{tip_sha}", "--reverse", f"--max-count={M}"],
+                    repo_dir
+                )
+                descendants = [c for c in stdout.strip().split('\n') if c]
+        
+        print(f"      ✓ Window: {len(ancestors)} ancestors, {len(descendants)} descendants")
         
         return CommitWindow(
             target_sha=target_sha,
